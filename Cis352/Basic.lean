@@ -248,16 +248,47 @@ end STLC
 -- Excursion 3: Induction over the naturals
 
 section Induction
-  open Nat
+--  open Nat
 
-  #check succ_add
+--  #check succ_add
 
   lemma add_assoc_nat (m n k : ℕ) : (m + n) + k = m + (n + k) := by
     induction m with
     | zero => simp
     | succ n ih => -- now we get an inductive hypothesis
-    simp [ih, succ_add]
+    simp [ih, Nat.succ_add]
 
+def f : ℕ → ℕ
+  | 0 => 0
+  | (n+1) => ((f n) + 1) + 1
+
+theorem f_double : ∀ n : ℕ, (f n) = 2 * n := by
+  intros n
+  induction n
+  case zero => simp [f]
+  case succ n' ih =>
+    -- ih is the inductive hypothesis
+    simp!
+    calc f n' + 1 + 1 = 2 * n' + 2 := by simp [ih]
+
+inductive Vec (α : Type) : Nat → Type where
+  | nil  : Vec α 0
+  | cons : α → Vec α n → Vec α (n + 1)
+
+-- zip is a function that takes lists of the same length and maps them
+-- to a list of pairs of the same length. Previously, this case would
+-- just break at runtime. However, it forces us to know the size at
+-- compile-time to be able to use it!
+def zip : {n : ℕ} → (Vec α n) → (Vec α n) → (Vec (α × α) n)
+  | _, Vec.nil, Vec.nil => Vec.nil
+  | _, Vec.cons hd0 tl0, Vec.cons hd1 tl1 => Vec.cons (hd0,hd1) (zip tl0 tl1)
+
+-- Computing some examples
+def l := Vec.cons 5 (Vec.cons 3 (Vec.nil))
+#check l
+def x := (zip l l)
+#check x
+#eval x
 end Induction
 
 section Math
